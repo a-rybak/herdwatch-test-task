@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mysql
+    container_name: db_sf_docker
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: test_sf_db
+    volumes:
+      - ./databases:/var/lib/mysql
+    networks:
+      - sf_net
+
+  adminer:
+    image: adminer
+    container_name: adminer_sf_docker
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - 8082:8080
+    networks:
+      - sf_net
+
+  php:
+    build: php
+    container_name: php_sf_docker
+    ports:
+      - "8080:80"
+    restart: always
+    volumes:
+      - ./php/vhosts:/etc/apache2/sites-enabled
+      - ./:/var/www
+    networks:
+      - sf_net
+
+  client:
+    build: php
+    container_name: client_sf_docker
+    working_dir: /var/www/client
+    ports:
+      - "8081:80"
+    restart: always
+    volumes:
+      - ./php/vhosts:/etc/apache2/sites-enabled
+      - ./:/var/www
+    networks:
+      - sf_net
+
+networks:
+  sf_net:
+      driver: "bridge"
+
+volumes:
+  databases:
